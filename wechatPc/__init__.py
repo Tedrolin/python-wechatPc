@@ -33,6 +33,7 @@ class WechatPc:
             response = await self.conn.recv()  # todo error handling
             try:
                 event = json.loads(response)
+                self.logger.debug(f'Received event: {event}')
                 if 'opCode' in event and event['opCode'] == OPCODE_WECHAT_QRCODE and self.rebindingQueue.qsize() > 0:
                     old_wechat_id = self.rebindingQueue.get_nowait()
                     if 'wechatId' in event:
@@ -40,7 +41,8 @@ class WechatPc:
                         self.clients[event['wechatId']] = self.clients[old_wechat_id]
                         del self.clients[old_wechat_id]
                 if 'wechatId' in event and 'body' in event and event['wechatId'] in self.clients:
-                    await self.clients[event['wechatId']].event_handler(event)
+                    asyncio.get_running_loop().create_task(self.clients[event['wechatId']].event_handler(event))
+                    # await self.clients[event['wechatId']].event_handler(event)
             except json.JSONDecodeError:
                 continue
             except:
