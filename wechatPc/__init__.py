@@ -26,7 +26,7 @@ class WechatPc:
         return obj
 
     async def connect(self):
-        self.conn = await websockets.connect(self.url)
+        self.conn = await websockets.connect(self.url, max_size=2 ** 27)
 
     async def run(self):
         while not self.conn.closed:
